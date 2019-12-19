@@ -1,4 +1,3 @@
-//var express = require('express');
 const inquirer = require("inquirer");
 const mysql = require("mysql");
 const cTable = require('console.table');
@@ -45,7 +44,7 @@ function start() {
         })
       .then(function (answer) {
 
-       // based on their answer, either call the bid or the post functions
+       // based on their answer, either call a function
        
         if (answer.addViewUpdate === "ADD") {
           addInfo();
@@ -66,7 +65,7 @@ function start() {
 //ADDING INFO////////////////////////////////////////////////////////////////////////////////
 
  function addInfo() {
-  // prompt for info about the item being put up for auction
+  // prompt for adding info about employee
   inquirer
     .prompt([
       {
@@ -92,9 +91,7 @@ function start() {
         },
         function(err) {
           if (err) throw err;
-          //console.log("Your auction was created successfully!");
-          // re-prompt the user for if they want to bid or post
-          //start();
+          
         }
       );
       
@@ -140,8 +137,7 @@ function start() {
         function(err) {
           if (err) throw err;
           addEmployee();
-          // re-prompt the user for if they want to bid or post
-          //start();
+          
         }
       );
       
@@ -189,8 +185,6 @@ function addEmployee() {
         },
         function(err) {
           if (err) throw err;
-          console.log("Your auction was created successfully!");
-          // re-prompt the user for if they want to bid or post
           start();
         }
       );
@@ -207,11 +201,7 @@ function addEmployee() {
 function updateInfo() {
   inquirer
     .prompt([
-      // {
-      //   name: "firstName",
-      //   type: "input",
-      //   message: "What is the employees first name?"
-      // },
+      
       {
         name: "lastName",
         type: "input",
@@ -277,11 +267,7 @@ function updateEmployeeRole(){
       }
     },
     
-    // {
-    //   name: "department",
-    //   type: "input",
-    //   message: "What is the employees department?"
-    // }
+    
   ])
   .then(function(answer){
     
@@ -342,10 +328,12 @@ function updateEmployeeDeparment() {
   
 }
 
+//VIEW INFO////////////////////////////////////////////////////////////////////////////////
+
 function viewEmployee() {
   connection.query("SELECT * FROM employee", function(err, res) {
     if (err) throw err;
-    // Log all results of the SELECT statement
+    
     console.log("~~~~~~~~INFORMATION ALLOCATED BY ID NUMBER~~~~~~~~")
 
     console.table(res);
@@ -356,7 +344,7 @@ function viewEmployee() {
 function viewTable() {
   connection.query("SELECT * FROM department", function(err, res) {
     if (err) throw err;
-    // Log all results of the SELECT statement
+    
     console.table(res);
     viewEmployeeRole()
   });
@@ -366,27 +354,10 @@ function viewTable() {
 function viewEmployeeRole() {
   connection.query("SELECT * FROM employee_role", function(err, res) {
     if (err) throw err;
-    // Log all results of the SELECT statement
+    
     console.table(res);
     start();
   });
 }
 
 
-
-
-// title: answer.title,
-//             salary: answer.salary,
-//             department_id: answer.department_id,
-//             employee_department: answer.department,
-
-
-// console.table([
-//   {
-//     name: 'foo',
-//     age: 10
-//   }, {
-//     name: 'bar',
-//     age: 20
-//   }
-// ])
