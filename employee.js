@@ -1,6 +1,7 @@
-var express = require('express');
-var mysql = require("mysql");
-var inquirer = require("inquirer");
+//var express = require('express');
+const inquirer = require("inquirer");
+const mysql = require("mysql");
+const cTable = require('console.table');
 
 
 //var app = express();
@@ -16,13 +17,19 @@ var connection = mysql.createConnection({
   user: "root",
 
   // Your password
-  password: "",
+  //password: "",
   database: "employeeDB"
+  
 });
+
+console.log(connection.config.database);
 
 // connect to the mysql server and sql database
 connection.connect(function(err) {
   if (err) throw err;
+  
+  console.log('you are connected!')
+  
   // run the start function after the connection is made to prompt the user
   start();
 });
@@ -36,43 +43,350 @@ function start() {
             message: "Would you like to [ADD], [UPDATE], or [VIEW] employee info?",
             choices: ["ADD", "UPDATE", "VIEW", "EXIT"]
         })
-      .then(function () {
+      .then(function (answer) {
 
-      console.log('howdy')
-
-        // if (answer.addViewUpdate === "ADD") {
-        //     return console.log("howdy");
-        //   }
-        //   else if(answer.addViewUpdate === "UPDATE") {
-        //       return console.log("dude");
-        //   }
-        //   else if(answer.addViewUpdate === "VIEW") {
-        //       return console.log("blah blah");
-        //   } else{
-        //       console.log("mew mew mew");
-        //       //connection.end();
-        //   }
-
-          /*
-        // based on their answer, either call the bid or the post functions
-        if (answer.postOrBid === "ADD") {
-          //postAuction();
-         return true;
-        }
-        else if(answer.postOrBid === "UPDATE") {
-          //bidAuction();
-          return true;
-        }
-        else if(answer.postOrBid === "VIEW") {
-           // bidAuction();
-           return true;
-          } 
-        else{
-          connection.end();
-        }
-        */
+       // based on their answer, either call the bid or the post functions
+       
+        if (answer.addViewUpdate === "ADD") {
+          addInfo();
+      }
+      else if(answer.addViewUpdate === "UPDATE") {
+        updateInfo();
+      } 
+      else if(answer.addViewUpdate === "VIEW") {
+        viewEmployee();
+      } else{
+        connection.end();
+      }
       
       });
   }
 
- 
+
+//ADDING INFO////////////////////////////////////////////////////////////////////////////////
+
+ function addInfo() {
+  // prompt for info about the item being put up for auction
+  inquirer
+    .prompt([
+      {
+        name: "department",
+        type: "input",
+        message: "What is the employees department?"
+      },
+      {
+        name: "departmentKey",
+        type: "input",
+        message: "What is the employees department key number?"
+      }
+    ])
+    .then(function(answer) {
+      console.log(answer);
+
+      // when finished prompting, insert a new item into the db with that info
+      connection.query(
+        "REPLACE INTO department SET ?",
+        {
+          employee_department: answer.department,
+          depart_key_num: answer.departmentKey
+        },
+        function(err) {
+          if (err) throw err;
+          //console.log("Your auction was created successfully!");
+          // re-prompt the user for if they want to bid or post
+          //start();
+        }
+      );
+      
+    })
+    .then(function(answer){
+
+      inquirer
+    .prompt([
+  
+      {
+        name: "title",
+        type: "input",
+        message: "What is the employees role title?"
+      },
+      {
+        name: "salary",
+        type: "input",
+        message: "What is the employees salary?",
+        validate: function(value) {
+          if (isNaN(value) === false) {
+            return true;
+          }
+          return false;
+        }
+      },
+      {
+        name: "department_id",
+        type: "input",
+        message: "What is the employees department id?"
+      }
+    ])
+    .then(function(answer) {
+      console.log(answer);
+
+      // when finished prompting, insert a new item into the db with that info
+      connection.query(
+        "REPLACE INTO employee_role SET ?",
+        {
+          title: answer.title,
+          salary: answer.salary,
+          department_id: answer.department_id
+        },
+        function(err) {
+          if (err) throw err;
+          addEmployee();
+          // re-prompt the user for if they want to bid or post
+          //start();
+        }
+      );
+      
+    })
+    
+      
+    });
+}
+
+function addEmployee() {
+  inquirer
+    .prompt([
+      {
+        name: "firstName",
+        type: "input",
+        message: "What is the employees first name?"
+      },
+      {
+        name: "lastName",
+        type: "input",
+        message: "What is the employees last name?"
+      },
+      {
+        name: "rollId",
+        type: "input",
+        message: "What is the employees role id number?"
+      },
+      {
+        name: "managerId",
+        type: "input",
+        message: "What is the employees managers id number?"
+      }
+    ])
+    .then(function(answer) {
+      console.log(answer);
+
+      // when finished prompting, insert a new item into the db with that info
+      connection.query(
+        "REPLACE INTO employee SET ?",
+        {
+          first_name: answer.firstName,
+          last_name: answer.lastName,
+          role_id: answer.rollId,
+          manager_id: answer.managerId,
+        },
+        function(err) {
+          if (err) throw err;
+          console.log("Your auction was created successfully!");
+          // re-prompt the user for if they want to bid or post
+          start();
+        }
+      );
+      
+    })
+};
+
+
+
+
+
+//UPDATE INFO////////////////////////////////////////////////////////////////////////////////
+
+function updateInfo() {
+  inquirer
+    .prompt([
+      // {
+      //   name: "firstName",
+      //   type: "input",
+      //   message: "What is the employees first name?"
+      // },
+      {
+        name: "lastName",
+        type: "input",
+        message: "What is the employees last name?"
+      },
+      {
+        name: "rollId",
+        type: "input",
+        message: "What is the employees NEW role id number?"
+      },
+      {
+        name: "managerId",
+        type: "input",
+        message: "What is the employees managers NEW id number?"
+      }
+     
+    ])
+    .then(function(answer){
+      
+      connection.query(
+        "UPDATE employee SET ? WHERE ?",
+
+        [
+          {
+            role_id: answer.rollId,
+            manager_id: answer.managerId,
+            
+           },
+          {
+            last_name: answer.lastName,
+            
+           }
+
+        ]
+      );
+   updateEmployeeRole();
+    })
+}
+
+function updateEmployeeRole(){
+  inquirer
+  .prompt([
+   
+    {
+      name: "department_id",
+      type: "input",
+      message: "What is the employees CURRENT department id?"
+    },
+    {
+      name: "title",
+      type: "input",
+      message: "What is the employees NEW role title?"
+    },
+    {
+      name: "salary",
+      type: "input",
+      message: "What is the employees NEW salary?",
+      validate: function(value) {
+        if (isNaN(value) === false) {
+          return true;
+        }
+        return false;
+      }
+    },
+    
+    // {
+    //   name: "department",
+    //   type: "input",
+    //   message: "What is the employees department?"
+    // }
+  ])
+  .then(function(answer){
+    
+    connection.query(
+      "UPDATE employee_role SET ? WHERE ?",
+
+      [
+        {
+          title: answer.title,
+          salary: answer.salary,
+          
+         },
+        {
+          department_id: answer.department_id,
+          
+         }
+
+      ]
+    );
+ updateEmployeeDeparment();
+  })
+}
+
+
+function updateEmployeeDeparment() {
+  inquirer
+    .prompt([
+      {
+        name: "department_key_num",
+        type: "input",
+        message: "What is the employees CURRENT department key num?"
+      },
+      {
+        name: "department",
+        type: "input",
+        message: "What is the employees NEW department?"
+      }
+    ])
+    .then(function(answer){
+      
+      connection.query(
+        "UPDATE department SET ? WHERE ?",
+
+        [
+          {
+            employee_department: answer.department
+            
+           },
+          {
+            depart_key_num: answer.department_key_num
+            
+           }
+
+        ]
+      );
+   start();
+    })
+  
+}
+
+function viewEmployee() {
+  connection.query("SELECT * FROM employee", function(err, res) {
+    if (err) throw err;
+    // Log all results of the SELECT statement
+    console.log("~~~~~~~~INFORMATION ALLOCATED BY ID NUMBER~~~~~~~~")
+
+    console.table(res);
+    viewTable();
+  });
+}
+
+function viewTable() {
+  connection.query("SELECT * FROM department", function(err, res) {
+    if (err) throw err;
+    // Log all results of the SELECT statement
+    console.table(res);
+    viewEmployeeRole()
+  });
+}
+
+
+function viewEmployeeRole() {
+  connection.query("SELECT * FROM employee_role", function(err, res) {
+    if (err) throw err;
+    // Log all results of the SELECT statement
+    console.table(res);
+    start();
+  });
+}
+
+
+
+
+// title: answer.title,
+//             salary: answer.salary,
+//             department_id: answer.department_id,
+//             employee_department: answer.department,
+
+
+// console.table([
+//   {
+//     name: 'foo',
+//     age: 10
+//   }, {
+//     name: 'bar',
+//     age: 20
+//   }
+// ])
